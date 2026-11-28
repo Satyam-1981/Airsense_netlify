@@ -2121,11 +2121,11 @@ textarea {
 .map-view .leaflet-control-attribution {
   font-size: 10px;
 }
-.airsense-pin-shell {
+.atmoiq-pin-shell {
   background: transparent;
   border: 0;
 }
-.airsense-pin {
+.atmoiq-pin {
   display: block;
   width: 19px;
   height: 19px;
@@ -2134,13 +2134,13 @@ textarea {
   transform: rotate(-45deg);
   box-shadow: 0 2px 8px #0d29254a;
 }
-.airsense-pin.is-station {
+.atmoiq-pin.is-station {
   background: #168b78;
 }
-.airsense-pin.is-verified {
+.atmoiq-pin.is-verified {
   background: #22865c;
 }
-.airsense-pin.is-pending {
+.atmoiq-pin.is-pending {
   background: #d28c4f;
 }
 .map-view .leaflet-popup-content {

@@ -68,7 +68,7 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, [city, page, loadCity, loadForecast]);
   useEffect(() => {
-    localStorage.setItem("airsense-favourites", JSON.stringify(favourites));
+    localStorage.setItem("atmoiq-favourites", JSON.stringify(favourites));
   }, [favourites]);
 
   function toggleFavourite(name, forceAdd = false) {

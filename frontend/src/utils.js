@@ -23,16 +23,16 @@ export function pollutantUnit(key) {
 
 export function readFavourites() {
   try {
-    const saved = JSON.parse(localStorage.getItem("airsense-favourites") || "[]");
+    const saved = JSON.parse(localStorage.getItem("atmoiq-favourites") || "[]");
     return Array.isArray(saved) ? saved.filter((item) => typeof item === "string").slice(0, 5) : [];
   } catch { return []; }
 }
 
 export function getClientId() {
-  let value = localStorage.getItem("airsense-client-id");
+  let value = localStorage.getItem("atmoiq-client-id");
   if (!value) {
     value = crypto.randomUUID();
-    localStorage.setItem("airsense-client-id", value);
+    localStorage.setItem("atmoiq-client-id", value);
   }
   return value;
 }

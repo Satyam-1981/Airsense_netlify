@@ -48,8 +48,8 @@ export default function MapView({
             ? "is-pending"
             : "is-station";
       const icon = L.divIcon({
-        className: "airsense-pin-shell",
-        html: `<span class="airsense-pin ${statusClass}"></span>`,
+        className: "atmoiq-pin-shell",
+        html: `<span class="atmoiq-pin ${statusClass}"></span>`,
         iconSize: [26, 26],
         iconAnchor: [13, 13],
       });

@@ -47,7 +47,7 @@ export default function HealthAlerts({ city, prediction }) {
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("airsense-alerts") || "{}");
+      const saved = JSON.parse(localStorage.getItem("atmoiq-alerts") || "{}");
       setThreshold(Number(saved.threshold) || 100);
       setEnabled(Boolean(saved.enabled));
       setQuiet(Boolean(saved.quiet));
@@ -66,7 +66,7 @@ export default function HealthAlerts({ city, prediction }) {
       Notification.permission !== "granted"
     )
       return;
-    const lastKey = `airsense-last-aqi:${city.toLowerCase()}`;
+    const lastKey = `atmoiq-last-aqi:${city.toLowerCase()}`;
     const storedPrevious = localStorage.getItem(lastKey);
     const previous = storedPrevious === null ? null : Number(storedPrevious);
     const current = prediction.aqi;
@@ -93,14 +93,14 @@ export default function HealthAlerts({ city, prediction }) {
       return;
     }
     const updated = { threshold, enabled: true, quiet, notifyOnRise };
-    localStorage.setItem("airsense-alerts", JSON.stringify(updated));
+    localStorage.setItem("atmoiq-alerts", JSON.stringify(updated));
     setEnabled(true);
     setStatus("Device notifications are enabled while AtmoIQ is open.");
   }
 
   function save() {
     const updated = { threshold, enabled, quiet, notifyOnRise };
-    localStorage.setItem("airsense-alerts", JSON.stringify(updated));
+    localStorage.setItem("atmoiq-alerts", JSON.stringify(updated));
     setStatus("Alert preferences saved on this device.");
   }
 

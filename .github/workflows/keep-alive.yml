@@ -1,5 +1,5 @@
 
-name: Keep AirSense Backend Alive
+name: Keep atmoiq Backend Alive
 
 on:
   schedule:
@@ -13,4 +13,4 @@ jobs:
       - name: Ping Render Backend
         run: |
           curl --fail --silent --show-error \
-            https://airsense-api-om9k.onrender.com/health
+            https://atmoiq-api-om9k.onrender.com/health
