@@ -15,4 +15,5 @@ export type ModelResult = {
   dominantPollutant: string;
   advisory: string[];
   limitations: string[];
+  model?: string;
 };

@@ -1,30 +1,30 @@
 {
-  "name": "airsense",
+  "name": "airsense-frontend",
   "private": true,
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "start": "node .output/server/index.mjs",
-    "typecheck": "tsc --noEmit"
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.120.5",
-    "@tanstack/react-start": "^1.120.5",
-    "@vitejs/plugin-react": "^4.3.4",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.15.0",
-    "zod": "^3.24.1"
+    "recharts": "^2.15.0"
   },
   "devDependencies": {
-    "@netlify/vite-plugin-tanstack-start": "^1.3.19",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.3",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.7.2",
-    "vite": "^8.0.0"
+    "vite": "^6.0.7"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
