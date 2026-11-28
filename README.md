@@ -1,4 +1,4 @@
-# AtmoIQ
+# AtmoIQ — Air Quality Intelligence for India
 
 **AtmoIQ is an India-focused air-quality companion.** It combines available monitoring-station observations, modelled atmospheric data, short-term forecasts and a small, transparent ML ensemble to help people understand local air quality and make better day-to-day decisions.
 
