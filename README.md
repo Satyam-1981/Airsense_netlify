@@ -1,6 +1,6 @@
-# AirSense — Air Pollution Detection using Ensemble Learning
+# AirSense — Air Pollution Detection using Ensemble Learning 
 
-A React + TypeScript/TanStack Start dashboard, Open-Meteo air-quality integration, OpenAQ v3 monitoring-station integration, and a separate FastAPI/scikit-learn inference service.
+A React + TypeScript Start dashboard, Open-Meteo air-quality integration, OpenAQ v3 monitoring-station integration, and a separate FastAPI/scikit-learn inference service.
 
 ## What is included
 
@@ -63,3 +63,5 @@ npm run build
 ```
 
 The ZIP contains source code only; no API keys, trained model binaries or fabricated evaluation scores are included. Train locally to generate `python/artifacts/`.
+
+## Future Improvements
