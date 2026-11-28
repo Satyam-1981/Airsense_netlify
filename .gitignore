@@ -1,12 +1,23 @@
-node_modules/
-dist/
 .env
-.env.*
-!.env.example
-python/.venv/
-python/__pycache__/
-python/artifacts/
+.venv/
+venv/
+__pycache__/
 *.py[cod]
+*.log
+
+# Django generated data
+staticfiles/
+media/
+
+# Generated ML artifacts
+ml/artifacts/*.joblib
+ml/artifacts/*.json
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Editors / operating systems
 .DS_Store
 .vscode/
 .idea/

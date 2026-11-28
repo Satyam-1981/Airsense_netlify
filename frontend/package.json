@@ -1,0 +1,26 @@
+{
+  "name": "atmoiq-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.15.0",
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "vite": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10.9.0"
+  }
+}
