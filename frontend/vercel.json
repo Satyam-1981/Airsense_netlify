@@ -3,6 +3,12 @@
     {
       "source": "/api/:path*",
       "destination": "https://atmoiq-aqi-server.onrender.com/api/:path*"
+    },
+    {
+      "source": "/media/:path*",
+      "destination": "https://atmoiq-aqi-server.onrender.com/media/:path*"
     }
   ]
 }
+
+
