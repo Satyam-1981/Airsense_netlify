@@ -52,20 +52,33 @@ ASGI_APPLICATION = "config.asgi.application"
 
 
 def database_config():
-    raw = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@127.0.0.1:5432/atmoiq")
+    raw = os.getenv(
+        "DATABASE_URL",
+        "postgresql://postgres:postgres@127.0.0.1:5432/atmoiq"
+    )
+
     parsed = urlparse(raw)
+
     if parsed.scheme not in {"postgres", "postgresql"}:
-        raise ValueError("DATABASE_URL must be a PostgreSQL URL, for example postgresql://user:password@host:5432/atmoiq")
-    return {"default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": unquote(parsed.path.lstrip("/")),
-        "USER": unquote(parsed.username or ""),
-        "PASSWORD": unquote(parsed.password or ""),
-        "HOST": parsed.hostname or "localhost",
-        "PORT": parsed.port or 5432,
-        "CONN_MAX_AGE": 60,
-        "OPTIONS": {"connect_timeout": 5},
-    }}
+        raise ValueError(
+            "DATABASE_URL must be a PostgreSQL URL"
+        )
+
+    return {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": unquote(parsed.path.lstrip("/")),
+            "USER": unquote(parsed.username or ""),
+            "PASSWORD": unquote(parsed.password or ""),
+            "HOST": parsed.hostname or "localhost",
+            "PORT": parsed.port or 5432,
+            "CONN_MAX_AGE": 60,
+            "OPTIONS": {
+                "connect_timeout": 10,
+                "sslmode": os.getenv("DB_SSLMODE", "require"),
+            },
+        }
+    }
 
 
 DATABASES = database_config()
