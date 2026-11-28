@@ -1,8 +1,12 @@
 node_modules/
-.output/
 dist/
 .env
+.env.*
+!.env.example
 python/.venv/
 python/__pycache__/
 python/artifacts/
-*.pyc
+*.py[cod]
+.DS_Store
+.vscode/
+.idea/

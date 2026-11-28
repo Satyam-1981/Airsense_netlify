@@ -65,8 +65,19 @@ def main():
     df=build_targets(pd.concat(frames,ignore_index=True)).dropna(subset=["aqi"]).sort_values("time").reset_index(drop=True)
     if len(df)<1000: raise SystemExit(f"Only {len(df)} valid rows; at least 1000 required.")
     X=df[FEATURES].replace([np.inf,-np.inf],np.nan); y=df.aqi.clip(0,500)
-    n=len(df); a=int(n*.70); b=int(n*.85)
-    Xtr,ytr=X.iloc[:a],y.iloc[:a]; Xv,yv=X.iloc[a:b],y.iloc[a:b]; Xte,yte=X.iloc[b:],y.iloc[b:]
+    # Split on unique timestamps so records from different cities at the same
+    # hour cannot leak across train/validation/test partitions.
+    timestamps=np.sort(df["time"].unique())
+    if len(timestamps) < 20: raise SystemExit("Not enough distinct hourly timestamps for a chronological split.")
+    a=max(1,int(len(timestamps)*.70)); b=max(a+1,int(len(timestamps)*.85))
+    train_end=timestamps[a-1]; validation_end=timestamps[min(b-1,len(timestamps)-1)]
+    train_mask=df["time"]<=train_end
+    validation_mask=(df["time"]>train_end)&(df["time"]<=validation_end)
+    test_mask=df["time"]>validation_end
+    Xtr,ytr=X.loc[train_mask],y.loc[train_mask]
+    Xv,yv=X.loc[validation_mask],y.loc[validation_mask]
+    Xte,yte=X.loc[test_mask],y.loc[test_mask]
+    if min(len(Xtr),len(Xv),len(Xte)) < 100: raise SystemExit("Chronological split produced too few rows in one partition.")
     models={"random_forest":make_pipeline(SimpleImputer(strategy="median"),RandomForestRegressor(n_estimators=300,min_samples_leaf=2,max_features=.9,random_state=42,n_jobs=-1)),"gradient_boosting":make_pipeline(SimpleImputer(strategy="median"),GradientBoostingRegressor(n_estimators=220,learning_rate=.04,max_depth=2,loss="huber",random_state=42)),"knn":make_pipeline(SimpleImputer(strategy="median"),StandardScaler(),KNeighborsRegressor(n_neighbors=15,weights="distance"))}
     vp={}
     for k,m in models.items(): m.fit(Xtr,ytr); vp[k]=m.predict(Xv)
@@ -77,12 +88,12 @@ def main():
     # Classifier is fitted only on training period and scored on held-out test period.
     bins=[-1,50,100,200,300,400,500]; cats=pd.cut(y,bins=bins,labels=False,include_lowest=True).astype(int)
     clf=RandomForestClassifier(n_estimators=250,min_samples_leaf=2,class_weight="balanced",random_state=42,n_jobs=-1)
-    clf.fit(Xtr,cats.iloc[:a]); cat_acc=float(accuracy_score(cats.iloc[b:],clf.predict(Xte)))
+    clf.fit(Xtr,cats.loc[Xtr.index]); cat_acc=float(accuracy_score(cats.loc[Xte.index],clf.predict(Xte)))
     # Refit regression models on train + validation after selecting weights.
     Xfit=pd.concat([Xtr,Xv]); yfit=pd.concat([ytr,yv])
     for m in models.values(): m.fit(Xfit,yfit)
     importances=models["random_forest"].named_steps["randomforestregressor"].feature_importances_
     joblib.dump({"models":models,"classifier":clf,"features":FEATURES,"weights":weights},OUT/"airsense_models.joblib")
-    artifact={"features":FEATURES,"weights":weights,"validation_rmse":vrmse,"test_metrics":metrics,"category_accuracy":cat_acc,"rows":int(len(df)),"cities":sorted(df.city.unique().tolist()),"train_period":[str(df.time.iloc[0]),str(df.time.iloc[a-1])],"test_period":[str(df.time.iloc[b]),str(df.time.iloc[-1])],"feature_importance":{k:float(v) for k,v in zip(FEATURES,importances)},"target":"CPCB-breakpoint proxy AQI derived from rolling Open-Meteo CAMS concentrations; not measured CPCB labels","split":"chronological 70/15/15"}
+    artifact={"features":FEATURES,"weights":weights,"validation_rmse":vrmse,"test_metrics":metrics,"category_accuracy":cat_acc,"rows":int(len(df)),"cities":sorted(df.city.unique().tolist()),"train_period":[str(df.time.iloc[0]),str(train_end)],"test_period":[str(df.loc[Xte.index[0],"time"]),str(df.time.iloc[-1])],"feature_importance":{k:float(v) for k,v in zip(FEATURES,importances)},"target":"CPCB-breakpoint proxy AQI derived from rolling Open-Meteo CAMS concentrations; not measured CPCB labels","split":"timestamp-grouped chronological 70/15/15"}
     (OUT/"metrics.json").write_text(json.dumps(artifact,indent=2)); print(json.dumps(artifact,indent=2))
 if __name__=="__main__": main()

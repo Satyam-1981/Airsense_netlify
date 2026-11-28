@@ -1,23 +1,32 @@
-# AirSense — Air Pollution Detection using Ensemble Learning 
+# AirSense — Air Quality Intelligence for India
 
-A React + TypeScript Start dashboard, Open-Meteo air-quality integration, OpenAQ v3 monitoring-station integration, and a separate FastAPI/scikit-learn inference service.
+AirSense is a React + TypeScript dashboard backed by **one Python FastAPI service**. The Python service owns all backend responsibilities: live data retrieval, city lookup, station discovery, AQI calculations, forecasting, model training/inference, metrics and optional data.gov.in access.
 
-## What is included
+## Architecture
 
-- Dashboard, live station directory, manual AQI prediction, five-day forecast, West Bengal city view, health advisory and model-insights pages.
-- Open-Meteo hourly pollutant concentrations and forecast for the indexed Indian cities.
-- OpenAQ v3 location discovery around selected cities and latest available sensor readings (requires `OPENAQ_API_KEY`). Missing readings are never fabricated.
-- Optional data.gov.in resource proxy (requires `DATA_GOV_IN_API_KEY` and a selected `DATA_GOV_IN_RESOURCE_ID`). Resource fields are returned as-is because each resource has its own schema; validate units and field semantics before using as model labels.
-- Separate Python training and FastAPI inference service with Random Forest, Gradient Boosting and KNN weighted ensemble.
-- No login or database required.
+- **Frontend:** React 19, TypeScript, Vite, TanStack Router and Recharts. It is a static web app; it contains no server-side API implementation.
+- **Backend:** Python 3.11+, FastAPI and Pydantic.
+- **ML:** scikit-learn Random Forest, Gradient Boosting and KNN weighted ensemble.
+- **Data:** Open-Meteo Air Quality (no key for its public endpoint), optional OpenAQ v3 and data.gov.in.
 
-## Requirements
+## Run locally
 
-- Node.js 20+ and npm
-- Python 3.10+ (3.11 recommended)
-- Internet access for the public data APIs and historical training fetch
+### 1. Python API
 
-## Run the web application
+```bash
+cd python
+python -m venv .venv
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
+```
+
+API docs: <http://127.0.0.1:8000/docs>
+
+### 2. Frontend
+
+In another terminal, from the repository root:
 
 ```bash
 npm install
@@ -25,43 +34,69 @@ cp .env.example .env
 npm run dev
 ```
 
-Open the Vite URL printed in the terminal. Without a running Python service, AQI prediction uses a clearly disclosed TypeScript demonstration fallback.
+Open <http://localhost:5173>. Set `VITE_API_BASE_URL` in `.env` if the API runs elsewhere. Restart Vite after changing environment variables.
 
-## Train and run the real ML service
+## Model training
 
-In another terminal:
+The project ZIP intentionally does not include a trained model binary. Train one locally (requires internet access and may take some time):
 
 ```bash
 cd python
-python -m venv .venv
-# macOS/Linux: source .venv/bin/activate
-# Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
 python train.py
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Keep `AIRSENSE_ML_API_URL=http://127.0.0.1:8000` in the root `.env`, then restart the web server. The TypeScript server function forwards prediction requests to FastAPI. Verify the service at `http://127.0.0.1:8000/health` and inspect metrics at `/metrics`.
+Training downloads historical Open-Meteo CAMS pollutant concentrations, builds rolling concentration features and CPCB-breakpoint-derived proxy targets, evaluates a chronological split, and writes `python/artifacts/airsense_models.joblib` plus `metrics.json`. Restart the API after training so it loads the artifact.
 
-## API keys
+Without a trained artifact, `/predict` uses a transparent CPCB-breakpoint calculation and labels the result accordingly. It does **not** pretend that a model has been trained. Model insights return a clear not-trained state until metrics exist.
 
-- OpenAQ: create a free API key from OpenAQ and set `OPENAQ_API_KEY` in the root `.env`. Requests use the v3 API and `X-API-Key` header.
-- data.gov.in: create a key and select the specific CPCB/air-quality resource you intend to use. Set both `DATA_GOV_IN_API_KEY` and `DATA_GOV_IN_RESOURCE_ID`. The resource proxy returns raw records; field mapping and validation remain resource-specific.
-- Open-Meteo: no API key required for the public non-commercial endpoint. Review provider terms and attribution requirements before deployment.
+## API endpoints
 
-## Data and scientific limitations
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Service and model status |
+| `GET /cities` | Supported city index |
+| `GET /air-quality/{city}` | Latest available modelled pollutant values and AQI result |
+| `POST /predict` | AQI calculation / trained ensemble prediction |
+| `POST /predict/batch` | Batch prediction (up to 500 records) |
+| `GET /forecast/{city}` | Five-day hourly forecast and AQI estimates |
+| `GET /stations?city=Kolkata` | OpenAQ monitoring locations and latest readings |
+| `GET /metrics` | Training metrics and model status |
+| `GET /cpcb-observations?limit=50` | Optional raw data.gov.in resource records |
+| `GET /docs` | Interactive API documentation |
 
-Open-Meteo provides modelled CAMS concentrations/forecasts, not direct station measurements. OpenAQ is a partial aggregation of public monitoring data and does not cover every station or pollutant. OpenAQ's latest values can be incomplete or out of order. CPCB-style AQI requires pollutant-specific averaging windows and valid sub-indices; this project applies rolling windows in the Python training pipeline, but the training target is still a **CPCB-breakpoint proxy derived from modelled concentrations**, not official CPCB AQI labels. Metrics therefore describe prediction of that proxy only. Do not describe it as validated CPCB station accuracy.
+## Environment variables
 
-For research or operational deployment, ingest validated CPCB station observations, document station calibration/quality flags, align pollutant units and averaging windows, use station- and time-separated evaluation, monitor data freshness, and review official health guidance. The app is educational and is not an official alert system or medical advice.
+### Frontend build environment
 
-## Build and checks
+- `VITE_API_BASE_URL`: public base URL of the Python API, without a trailing slash. This value is public and must not contain secrets.
+
+### Python service environment
+
+- `OPENAQ_API_KEY`: optional OpenAQ v3 key.
+- `DATA_GOV_IN_API_KEY`: optional data.gov.in key.
+- `DATA_GOV_IN_RESOURCE_ID`: optional selected data.gov.in resource ID.
+- `CORS_ORIGINS`: comma-separated allowed frontend origins. Use the deployed frontend URL in production; `*` is convenient for local development.
+
+## Deployment
+
+### Python API on Render
+
+The included `render.yaml` creates the Python web service. Connect the repository to Render and deploy the blueprint. Configure optional API keys and set `CORS_ORIGINS` to the frontend domain.
+
+### Frontend on Vercel
+
+Import the repository into Vercel. Use the repository root, framework preset **Vite**, build command `npm run build`, and output directory `dist`. Add `VITE_API_BASE_URL` with the deployed Render API URL. The included `vercel.json` supports client-side route fallback.
+
+## Data quality and scientific limitations
+
+Open-Meteo's air-quality service provides CAMS modelled pollutant concentrations, not direct station measurements. OpenAQ is a partial aggregation and may have missing or delayed readings. The training target is a **CPCB-breakpoint proxy derived from modelled concentrations**, not official CPCB ground-truth AQI. The reported metrics therefore measure agreement with that proxy only. Do not market them as validated CPCB station accuracy.
+
+CPCB AQI reporting also depends on pollutant-specific averaging windows, data completeness and station quality controls. The live display is an educational estimate from the selected modelled data; it is not an official CPCB alert or a medical diagnosis. Validate source fields and units before using optional data.gov.in records as reference observations.
+
+## Checks
 
 ```bash
 npm run typecheck
 npm run build
+python -m compileall -q python
 ```
-
-The ZIP contains source code only; no API keys, trained model binaries or fabricated evaluation scores are included. Train locally to generate `python/artifacts/`.
-
-## Future Improvements
