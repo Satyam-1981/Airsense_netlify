@@ -13,4 +13,5 @@ jobs:
       - name: Ping Render Backend
         run: |
           curl --fail --silent --show-error \
-            https://airsense-api-om9k.onrender.com/health
+            https://airsense-api-om9k.onrender.com/health,
+            https://atmoiq-aqi-server.onrender.com/api/health
